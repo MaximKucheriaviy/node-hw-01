@@ -19,7 +19,7 @@ async function listContacts() {
 async function getContactById(contactId) {
     try{
         const contacts = await listContacts();
-        const result = contacts.find(item => item.id === contactId);
+        const result = contacts.find(item => item.id === contactId.toString());
         if(!result){
             return null;
         }
@@ -31,10 +31,16 @@ async function getContactById(contactId) {
   }
   
  async function removeContact(contactId) {
+
     try{
         const contacts = await listContacts();
-        const contactsNew = contacts.filter(item => item.id !== contactId);
-        await fs.writeFile(contactsPath, JSON.stringify(contactsNew));
+        const index = contacts.findIndex(item => item.id === contactId.toString());
+        if(index === -1){
+            throw new Error(`Contact with id: ${contactId} not found`);
+        }
+        const contact = contacts.splice(index, 1);
+        await fs.writeFile(contactsPath, JSON.stringify(contacts));
+        return contact[0];
     }
     catch(err){
         console.log(err);
@@ -52,6 +58,7 @@ async function getContactById(contactId) {
         }
         contacts.push(newItem);
         await fs.writeFile(contactsPath, JSON.stringify(contacts));
+        return newItem.id;
     }
     catch(err){
         console.log(err);
